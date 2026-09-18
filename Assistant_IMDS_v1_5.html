@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1b5e20">
+<title>Assistant IMDS v1.5</title>
+<style>
+:root{--g:#1b5e20;--g2:#2e7d32;--y:#fbc02d;--c:#fffdf2;--w:#fff;--l:#eef3ee;--t:#183018}
+*{box-sizing:border-box}body{margin:0;background:var(--c);color:var(--t);font-family:Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;text-align:center;padding:20px 14px;border-bottom:5px solid var(--y)}
+header h1{margin:0;font-size:25px}header p{margin:6px 0 0;font-size:13px}
+main{max-width:800px;margin:auto;padding:14px}.card{background:var(--w);padding:16px;margin-bottom:14px;border-radius:16px;box-shadow:0 3px 12px #0001}
+h2{color:var(--g);font-size:18px;margin:0 0 12px}label{font-size:13px;font-weight:bold}
+textarea,input,select{width:100%;padding:12px;border:1px solid #cbd5cb;border-radius:10px;font-size:15px;margin:5px 0 10px;background:#fff}
+button{border:0;border-radius:10px;padding:11px 14px;margin:3px;font-weight:bold}.p{background:var(--g);color:#fff}.y{background:var(--y);color:#243000}.l{background:var(--l);color:var(--g)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.quick{min-height:65px}
+#result{white-space:pre-wrap;line-height:1.55;background:#f7faf7;border-left:4px solid var(--g);padding:14px;border-radius:8px;min-height:110px}
+.small{font-size:12px;color:#667}.tag{display:inline-block;background:#e8f1e8;padding:5px 8px;border-radius:20px;margin:2px;font-size:11px}
+.item{padding:9px;margin:7px 0;background:#f5f8f5;border-radius:9px}.hidden{display:none}
+footer{text-align:center;font-size:11px;color:#687368;padding:15px}
+@media(max-width:500px){.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>🏫 ASSISTANT IMDS</h1>
+<p>Version 1.5 • Générateur intelligent hors ligne</p>
+</header>
+<main>
+
+<section class="card">
+<h2>🤖 1. Assistant intelligent</h2>
+<textarea id="q" rows="5" placeholder="Écris naturellement ta demande. Exemple : Prépare une convocation pour les parents de 9e AF, dimanche à 14h30, sur les résultats des examens."></textarea>
+<button class="p" onclick="smart()">✨ Comprendre et générer</button>
+<button class="l" onclick="clearAll()">Effacer</button>
+<div style="margin-top:8px">
+<span class="tag">leçon</span><span class="tag">examen</span><span class="tag">convocation</span><span class="tag">rapport</span><span class="tag">WhatsApp</span><span class="tag">avis</span>
+</div>
+<p class="small">V1.5 fonctionne sans Internet. Elle détecte plusieurs mots-clés et construit un document à partir de ta demande.</p>
+</section>
+
+<section class="card">
+<h2>⚡ 2. Demandes rapides</h2>
+<div class="grid">
+<button class="quick l" onclick="preset('leçon')">🎓 Préparer une leçon</button>
+<button class="quick l" onclick="preset('examen')">📝 Créer un examen</button>
+<button class="quick l" onclick="preset('convocation')">👨‍👩‍👧 Convocation</button>
+<button class="quick l" onclick="preset('rapport')">📊 Rapport</button>
+<button class="quick l" onclick="preset('whatsapp')">📢 WhatsApp</button>
+<button class="quick l" onclick="preset('avis')">📣 Avis aux parents</button>
+</div>
+</section>
+
+<section class="card">
+<h2>🧠 3. Générateur structuré</h2>
+<label>Type</label>
+<select id="type">
+<option value="lecon">Fiche de préparation de leçon</option>
+<option value="examen">Examen</option>
+<option value="convocation">Convocation</option>
+<option value="avis">Avis aux parents</option>
+<option value="rapport">Rapport scolaire</option>
+<option value="whatsapp">Message WhatsApp</option>
+</select>
+<label>Classe / niveau</label><input id="classe" placeholder="Ex. 8e AF">
+<label>Matière / sujet</label><input id="sujet" placeholder="Ex. Mathématiques — fractions">
+<label>Informations supplémentaires</label><textarea id="info" rows="3" placeholder="Date, heure, objectif, consignes..."></textarea>
+<button class="y" onclick="structured()">📄 Générer</button>
+</section>
+
+<section class="card">
+<h2>📄 4. Document</h2>
+<div id="result">Ton document apparaîtra ici.</div>
+<button class="p" onclick="copyDoc()">📋 Copier</button>
+<button class="l" onclick="printDoc()">🖨️ Imprimer</button>
+<button class="l" onclick="saveDoc()">💾 Sauvegarder</button>
+</section>
+
+<section class="card">
+<h2>🕘 5. Historique</h2>
+<div id="history">Aucun document sauvegardé.</div>
+<button class="l" onclick="clearHistory()">🗑️ Vider</button>
+</section>
+
+</main>
+<footer>
+Institution Mixte Le Domaine du Savoir (IMDS)<br>
+Avec le domaine du savoir c’est l’éducation pour l’avenir.
+</footer>
+
+<script>
+const SCHOOL="Institution Mixte Le Domaine du Savoir (IMDS)";
+const today=()=>new Date().toLocaleDateString("fr-FR");
+
+function preset(type){
+ const examples={
+  leçon:"Prépare une fiche de préparation de leçon de mathématiques pour la 8e AF sur les fractions.",
+  examen:"Crée un examen de mathématiques pour la 9e AF sur les équations, avec barème et corrigé.",
+  convocation:"Prépare une convocation pour les parents des élèves de 9e AF pour une réunion.",
+  rapport:"Prépare un rapport scolaire trimestriel pour une classe.",
+  whatsapp:"Rédige un message WhatsApp aux parents concernant une activité scolaire.",
+  avis:"Rédige un avis officiel destiné aux parents."
+ };
+ document.getElementById("q").value=examples[type];
+ document.getElementById("q").focus();
+}
+
+function smart(){
+ const q=document.getElementById("q").value.trim();
+ if(!q){alert("Écris une demande.");return}
+ const s=q.toLowerCase();
+ let type="avis";
+ if(/leçon|lecon|cours|enseigne|enseigner/.test(s)) type="lecon";
+ else if(/examen|contrôle|controle|test|évaluation|evaluation/.test(s)) type="examen";
+ else if(/convocation|réunion|reunion|rencontre/.test(s)) type="convocation";
+ else if(/rapport|bilan/.test(s)) type="rapport";
+ else if(/whatsapp|message aux parents|sms/.test(s)) type="whatsapp";
+ const classe=(q.match(/(?:[1-9]e|[1-9]ère|[1-9]re|kindergarten|maternelle)\s*(?:AF|année|classe)?/i)||[""])[0];
+ const doc=build(type,classe,"",q);
+ show(doc);
+}
+
+function structured(){
+ const type=document.getElementById("type").value;
+ const classe=document.getElementById("classe").value.trim();
+ const sujet=document.getElementById("sujet").value.trim();
+ const info=document.getElementById("info").value.trim();
+ show(build(type,classe,sujet,info));
+}
+
+function build(type,classe,sujet,info){
+ const C=classe||"________________";
+ const S=sujet||"________________";
+ const I=info||"________________";
+ if(type==="lecon") return `${SCHOOL}\n\nFICHE DE PRÉPARATION DE LEÇON\n\nClasse : ${C}\nMatière / thème : ${S}\nDurée : __________\nDate : ${today()}\n\nObjectif général :\n____________________________________________\n\nObjectifs spécifiques :\n1. __________________________________________\n2. __________________________________________\n3. __________________________________________\n\nPrérequis : __________________________________\nMatériel : ___________________________________\n\nDÉROULEMENT\n1. Mise en situation / rappel\n2. Présentation du thème\n3. Explication et exemples\n4. Exercices dirigés\n5. Exercices individuels\n6. Évaluation\n7. Devoir à domicile\n\nInformations : ${I}\n\nProfesseur : _________________________________`;
+
+ if(type==="examen") return `${SCHOOL}\n\nEXAMEN / ÉVALUATION\n\nClasse : ${C}\nMatière / sujet : ${S}\nDate : __________   Durée : __________\nNote : /100\n\nPARTIE I — CONNAISSANCES\n1. __________________________________________\n2. __________________________________________\n\nPARTIE II — APPLICATION\n3. __________________________________________\n4. __________________________________________\n\nPARTIE III — PROBLÈME / RÉFLEXION\n5. __________________________________________\n\nConsignes : ${I}\n\nBARÈME\nQuestion 1 : ____ pts   Question 2 : ____ pts\nQuestion 3 : ____ pts   Question 4 : ____ pts\nQuestion 5 : ____ pts\nTotal : 100 pts\n\nCORRIGÉ : à préparer séparément.`;
+
+ if(type==="convocation") return `${SCHOOL}\n\nCONVOCATION DES PARENTS\n\nChers parents / tuteurs,\n\nLa Direction de ${SCHOOL} vous invite à participer à une réunion concernant :\n\n${S}\n\nClasse : ${C}\nInformations : ${I}\n\nVotre présence et votre collaboration sont importantes pour le suivi scolaire des élèves.\n\nFait le ${today()}\n\nLa Direction`;
+
+ if(type==="rapport") return `${SCHOOL}\n\nRAPPORT SCOLAIRE\n\nClasse : ${C}\nObjet : ${S}\nDate : ${today()}\n\n1. CONTEXTE\n____________________________________________\n\n2. DÉROULEMENT\n____________________________________________\n\n3. OBSERVATIONS\n____________________________________________\n\n4. RÉSULTATS\n____________________________________________\n\n5. DIFFICULTÉS\n____________________________________________\n\n6. RECOMMANDATIONS\n____________________________________________\n\nInformations complémentaires :\n${I}\n\nResponsable : ________________________________`;
+
+ if(type==="whatsapp") return `📢 *${SCHOOL}*\n\nChers parents,\n\nNous vous informons que :\n\n${S}\n\nClasse : ${C}\n${I}\n\nMerci pour votre collaboration et votre confiance.\n\n🏫 *La Direction — IMDS*`;
+
+ return `${SCHOOL}\n\nAVIS AUX PARENTS\n\nChers parents,\n\nLa Direction vous informe de ce qui suit :\n\n${S}\n\nClasse concernée : ${C}\n\n${I}\n\nNous vous remercions de votre compréhension et de votre collaboration.\n\nFait le ${today()}\n\nLa Direction`;
+}
+
+function show(t){document.getElementById("result").textContent=t;window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"})}
+function copyDoc(){
+ const t=document.getElementById("result").textContent;
+ if(t.startsWith("Ton document")) return;
+ navigator.clipboard?.writeText(t).then(()=>alert("Document copié.")).catch(()=>alert("Copie automatique indisponible."));
+}
+function printDoc(){
+ const t=document.getElementById("result").textContent;
+ if(t.startsWith("Ton document")) return;
+ const w=window.open("","_blank");
+ w.document.write("<html><head><title>Document IMDS</title><style>body{font-family:Arial;white-space:pre-wrap;line-height:1.6;padding:30px}</style></head><body>"+escapeHtml(t)+"</body></html>");
+ w.document.close();w.print();
+}
+function escapeHtml(x){return x.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function saveDoc(){
+ const t=document.getElementById("result").textContent;
+ if(t.startsWith("Ton document")) return;
+ let h=JSON.parse(localStorage.getItem("imds15")||"[]");
+ h.unshift({d:new Date().toLocaleString("fr-FR"),t});h=h.slice(0,15);
+ localStorage.setItem("imds15",JSON.stringify(h));renderHistory();alert("Document sauvegardé sur ce téléphone.");
+}
+function renderHistory(){
+ const h=JSON.parse(localStorage.getItem("imds15")||"[]");
+ document.getElementById("history").innerHTML=h.length?h.map((x,i)=>`<div class="item"><b>${x.d}</b><br>${escapeHtml(x.t.slice(0,120))}…<br><button class="l" onclick="openSaved(${i})">Ouvrir</button></div>`).join(""):"Aucun document sauvegardé.";
+}
+function openSaved(i){let h=JSON.parse(localStorage.getItem("imds15")||"[]");show(h[i].t)}
+function clearHistory(){if(confirm("Vider l'historique ?")){localStorage.removeItem("imds15");renderHistory()}}
+function clearAll(){document.getElementById("q").value="";document.getElementById("result").textContent="Ton document apparaîtra ici."}
+renderHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#1b5e20">
+<title>Assistant IMDS v1.0</title>
+<style>
+:root{--vert:#1b5e20;--vert2:#2e7d32;--jaune:#fbc02d;--creme:#fffdf2;--blanc:#fff;--gris:#eef2ee;--texte:#183018}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--creme);color:var(--texte)}
+header{background:linear-gradient(135deg,var(--vert),var(--vert2));color:white;padding:20px 16px;text-align:center;border-bottom:5px solid var(--jaune)}
+header h1{margin:0;font-size:25px} header p{margin:7px 0 0;font-size:13px}
+main{max-width:760px;margin:auto;padding:14px}
+.card{background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 3px 12px #0001}
+h2{font-size:18px;color:var(--vert);margin:0 0 12px}
+textarea,input,select{width:100%;padding:12px;border:1px solid #ccd5cc;border-radius:10px;font-size:15px;background:#fff;margin:5px 0 10px}
+button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer;margin:4px 3px 4px 0}
+.primary{background:var(--vert);color:white}.yellow{background:var(--jaune);color:#263300}.light{background:var(--gris);color:var(--vert)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.quick{min-height:72px;font-size:14px}
+#result{white-space:pre-wrap;line-height:1.5;background:#f7faf7;border-left:4px solid var(--vert);padding:13px;border-radius:8px;min-height:90px}
+.small{font-size:12px;color:#667}
+.hidden{display:none}
+footer{text-align:center;padding:18px;font-size:11px;color:#687368}
+</style>
+</head>
+<body>
+<header>
+<h1>🏫 ASSISTANT IMDS</h1>
+<p>Institution Mixte Le Domaine du Savoir • Version 1.0</p>
+</header>
+
+<main>
+<section class="card">
+<h2>🤖 Demander à l'Assistant</h2>
+<textarea id="question" rows="4" placeholder="Exemple : Prépare une convocation pour les parents des élèves de 8e AF..."></textarea>
+<button class="primary" onclick="assistant()">✨ Traiter la demande</button>
+<button class="light" onclick="clearBox()">Effacer</button>
+<p class="small">Cette V1 fonctionne hors ligne : elle prépare des modèles et organise tes demandes. L'IA en ligne pourra être connectée dans une prochaine version.</p>
+</section>
+
+<section class="card">
+<h2>⚡ Actions rapides</h2>
+<div class="grid">
+<button class="quick light" onclick="setQuestion('Prépare une lettre d’information destinée aux parents.')">📝 Lettre</button>
+<button class="quick light" onclick="setQuestion('Prépare une convocation pour une réunion de parents.')">👨‍👩‍👧 Convocation</button>
+<button class="quick light" onclick="setQuestion('Prépare une fiche de préparation de leçon.')">🎓 Leçon</button>
+<button class="quick light" onclick="setQuestion('Prépare un examen avec barème et corrigé.')">📚 Examen</button>
+<button class="quick light" onclick="setQuestion('Prépare un message WhatsApp pour les parents.')">📢 WhatsApp</button>
+<button class="quick light" onclick="setQuestion('Prépare un rapport administratif scolaire.')">📊 Rapport</button>
+</div>
+</section>
+
+<section class="card">
+<h2>🛠️ Générateur rapide</h2>
+<label>Type de document</label>
+<select id="type">
+<option value="avis">Avis aux parents</option>
+<option value="convocation">Convocation</option>
+<option value="rapport">Rapport scolaire</option>
+<option value="lecon">Fiche de leçon</option>
+<option value="examen">Examen</option>
+<option value="whatsapp">Message WhatsApp</option>
+</select>
+<label>Informations principales</label>
+<textarea id="details" rows="3" placeholder="Date, classe, matière, sujet, heure, etc."></textarea>
+<button class="yellow" onclick="generate()">📄 Générer le modèle</button>
+</section>
+
+<section class="card">
+<h2>📋 Résultat</h2>
+<div id="result">Ton résultat apparaîtra ici.</div>
+<button class="primary" onclick="copyResult()">📋 Copier</button>
+<button class="light" onclick="saveResult()">💾 Sauvegarder</button>
+</section>
+
+<section class="card">
+<h2>🕘 Historique</h2>
+<div id="history" class="small">Aucun document sauvegardé.</div>
+<button class="light" onclick="clearHistory()">🗑️ Vider l'historique</button>
+</section>
+</main>
+
+<footer>Préparé pour Institution Mixte Le Domaine du Savoir (IMDS)<br>Avec le domaine du savoir c’est l’éducation pour l’avenir.</footer>
+
+<script>
+const school="Institution Mixte Le Domaine du Savoir (IMDS)";
+function setQuestion(t){document.getElementById("question").value=t;document.getElementById("question").focus()}
+function clearBox(){document.getElementById("question").value="";document.getElementById("result").textContent="Ton résultat apparaîtra ici."}
+
+function assistant(){
+ const q=document.getElementById("question").value.trim();
+ if(!q){alert("Écris d'abord ta demande.");return}
+ let r="ASSISTANT IMDS — V1.0\\n\\nDemande reçue :\\n"+q+
+ "\\n\\nPour produire le document final, précise si nécessaire :\\n• classe ou niveau\\n• date et heure\\n• matière ou activité\\n• nom du responsable\\n• informations particulières.";
+ document.getElementById("result").textContent=r;
+}
+
+function generate(){
+ const type=document.getElementById("type").value;
+ const d=document.getElementById("details").value.trim()||"À compléter";
+ const date=new Date().toLocaleDateString("fr-FR");
+ let r="";
+ if(type==="avis") r=`${school}\\n\\nAVIS AUX PARENTS\\n\\nChers parents,\\n\\nLa direction de ${school} informe les parents/tuteurs que :\\n\\n${d}\\n\\nNous vous remercions de votre collaboration.\\n\\nFait le ${date}\\nLa Direction`;
+ if(type==="convocation") r=`${school}\\n\\nCONVOCATION\\n\\nMadame, Monsieur,\\n\\nLa Direction vous invite à prendre part à une réunion concernant :\\n\\n${d}\\n\\nVotre présence est vivement souhaitée.\\n\\nFait le ${date}\\nLa Direction`;
+ if(type==="rapport") r=`${school}\\n\\nRAPPORT SCOLAIRE\\n\\nObjet : ${d}\\n\\n1. Contexte\\n2. Déroulement\\n3. Observations\\n4. Difficultés rencontrées\\n5. Résultats\\n6. Recommandations\\n\\nDate : ${date}\\nResponsable : __________________`;
+ if(type==="lecon") r=`${school}\\n\\nFICHE DE PRÉPARATION DE LEÇON\\n\\nThème : ${d}\\nNiveau : __________\\nMatière : __________\\nDurée : __________\\n\\nObjectif général :\\n________________________________\\n\\nObjectifs spécifiques :\\n1. ________________________________\\n2. ________________________________\\n\\nPrérequis : ________________________\\nMatériel : _________________________\\n\\nDéroulement :\\n1. Mise en situation\\n2. Explication / découverte\\n3. Exercices dirigés\\n4. Exercices individuels\\n5. Évaluation\\n6. Devoir`;
+ if(type==="examen") r=`${school}\\n\\nÉVALUATION / EXAMEN\\n\\nSujet : ${d}\\nClasse : __________   Date : __________\\nDurée : __________   Note : /100\\n\\nPARTIE I — Questions de connaissance\\n1. __________________________________\\n2. __________________________________\\n\\nPARTIE II — Exercices\\n3. __________________________________\\n4. __________________________________\\n\\nPARTIE III — Application / réflexion\\n5. __________________________________\\n\\nBARÈME : à compléter selon les compétences évaluées.\\n\\nCORRIGÉ : à préparer séparément.`;
+ if(type==="whatsapp") r=`📢 *${school}*\\n\\nChers parents,\\n\\nNous vous informons que :\\n\\n${d}\\n\\nMerci pour votre collaboration et votre confiance.\\n\\n🏫 La Direction — IMDS`;
+ document.getElementById("result").textContent=r;
+}
+
+function copyResult(){
+ navigator.clipboard?.writeText(document.getElementById("result").textContent)
+ .then(()=>alert("Résultat copié."))
+ .catch(()=>alert("Sélectionne le texte et copie-le manuellement."));
+}
+function saveResult(){
+ const r=document.getElementById("result").textContent;
+ if(!r||r==="Ton résultat apparaîtra ici.") return;
+ let h=JSON.parse(localStorage.getItem("imds_history")||"[]");
+ h.unshift({date:new Date().toLocaleString("fr-FR"),text:r});
+ h=h.slice(0,10);localStorage.setItem("imds_history",JSON.stringify(h));showHistory();
+ alert("Document sauvegardé sur ce téléphone.");
+}
+function showHistory(){
+ const h=JSON.parse(localStorage.getItem("imds_history")||"[]");
+ document.getElementById("history").innerHTML=h.length?h.map((x,i)=>`<div style="margin:8px 0;padding:9px;background:#f4f7f4;border-radius:8px"><b>${x.date}</b><br>${x.text.slice(0,100).replaceAll("<","&lt;")}…<br><button class="light" onclick="loadHistory(${i})">Ouvrir</button></div>`).join(""):"Aucun document sauvegardé.";
+}
+function loadHistory(i){let h=JSON.parse(localStorage.getItem("imds_history")||"[]");document.getElementById("result").textContent=h[i].text}
+function clearHistory(){if(confirm("Vider l'historique ?")){localStorage.removeItem("imds_history");showHistory()}}
+showHistory();
+</script>
+</body>
+</html>
