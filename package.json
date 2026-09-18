@@ -1,0 +1,14 @@
+{
+  "name": "assistant-imds",
+  "version": "3.0.0",
+  "description": "Assistant IA de l'Institution Mixte Le Domaine du Savoir",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "openai": "^5.0.0",
+    "dotenv": "^16.4.7"
+  }
+}
