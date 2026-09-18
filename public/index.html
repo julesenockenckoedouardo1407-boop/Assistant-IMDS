@@ -1,1 +1,378 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistant IMDS</title>
+
+<style>
+:root{
+  --vert:#1b5e20;
+  --vert2:#2e7d32;
+  --jaune:#fbc02d;
+  --fond:#f4f7f4;
+  --blanc:#ffffff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--fond);
+  color:#173018;
+}
+
+header{
+  background:linear-gradient(135deg,var(--vert),var(--vert2));
+  color:white;
+  text-align:center;
+  padding:25px 15px;
+}
+
+header h1{
+  margin:0;
+  font-size:28px;
+}
+
+header p{
+  margin:8px 0 0;
+}
+
+main{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
+}
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px #0001;
+}
+
+textarea{
+  width:100%;
+  min-height:150px;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:12px;
+  font-size:16px;
+  resize:vertical;
+}
+
+select,button{
+  padding:12px;
+  border-radius:10px;
+  font-size:15px;
+}
+
+select{
+  border:1px solid #bbb;
+  width:100%;
+  margin-top:10px;
+}
+
+button{
+  border:0;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.ask{
+  background:var(--vert2);
+  color:white;
+  width:100%;
+  margin-top:10px;
+}
+
+.quick{
+  background:#eef7e9;
+  color:var(--vert);
+  margin:4px;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:12px;
+}
+
+.actions button{
+  flex:1;
+  min-width:120px;
+  background:white;
+  border:1px solid #ccc;
+}
+
+#answer{
+  white-space:pre-wrap;
+  line-height:1.6;
+  min-height:150px;
+}
+
+.status{
+  margin-top:10px;
+  font-size:14px;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  font-size:13px;
+  color:#687068;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🤖 ASSISTANT IMDS</h1>
+  <p>Institution Mixte Le Domaine du Savoir</p>
+  <p>« Avec le domaine du savoir c’est l’éducation pour l’avenir. »</p>
+</header>
+
+<main>
+
+<div class="card">
+
+<h2>Que veux-tu faire ?</h2>
+
+<textarea id="prompt"
+placeholder="Exemple : Prépare une fiche de leçon de mathématiques pour la 8e AF sur les fractions."></textarea>
+
+<select id="mode">
+
+<option value="assistant">
+Assistant libre
+</option>
+
+<option value="document">
+Créer un document officiel
+</option>
+
+<option value="cours">
+Préparer une leçon
+</option>
+
+<option value="examen">
+Préparer un examen
+</option>
+
+<option value="parent">
+Message aux parents
+</option>
+
+</select>
+
+<button class="ask" onclick="askAI()">
+✨ DEMANDER À ASSISTANT IMDS
+</button>
+
+<div id="status" class="status"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>⚡ Actions rapides</h2>
+
+<div class="actions">
+
+<button class="quick"
+onclick="setPrompt('Prépare une convocation officielle pour une réunion de parents.')">
+📋 Convocation
+</button>
+
+<button class="quick"
+onclick="setPrompt('Prépare une fiche de leçon complète de mathématiques pour la 8e AF.')">
+📚 Leçon
+</button>
+
+<button class="quick"
+onclick="setPrompt('Crée un examen de 9e AF avec barème et corrigé.')">
+📝 Examen
+</button>
+
+<button class="quick"
+onclick="setPrompt('Rédige un avis officiel destiné aux parents des élèves.')">
+📢 Avis
+</button>
+
+<button class="quick"
+onclick="setPrompt('Rédige un message WhatsApp professionnel pour les parents.')">
+📱 WhatsApp
+</button>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>🧠 Réponse de l'Assistant</h2>
+
+<div id="answer">
+La réponse apparaîtra ici.
+</div>
+
+<div class="actions">
+
+<button onclick="copyAnswer()">
+📋 Copier
+</button>
+
+<button onclick="window.print()">
+🖨️ Imprimer
+</button>
+
+<button onclick="clearAnswer()">
+🗑️ Effacer
+</button>
+
+</div>
+
+</div>
+
+</main>
+
+<footer>
+Assistant IMDS v3.0<br>
+Institution Mixte Le Domaine du Savoir
+</footer>
+
+
+<script>
+
+function setPrompt(text){
+
+document.getElementById("prompt").value=text;
+
+document.getElementById("prompt").focus();
+
+}
+
+
+async function askAI(){
+
+const prompt=
+document.getElementById("prompt").value.trim();
+
+const mode=
+document.getElementById("mode").value;
+
+const answer=
+document.getElementById("answer");
+
+const status=
+document.getElementById("status");
+
+
+if(!prompt){
+
+status.textContent=
+"⚠️ Écris d'abord ta demande.";
+
+return;
+
+}
+
+
+status.textContent=
+"🤖 Assistant IMDS réfléchit...";
+
+answer.textContent=
+"Connexion à l'intelligence artificielle...";
+
+
+try{
+
+const response=
+await fetch("/api/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+prompt:prompt,
+
+mode:mode
+
+})
+
+});
+
+
+const data=
+await response.json();
+
+
+if(!response.ok){
+
+throw new Error(
+data.error ||
+"Erreur du serveur"
+);
+
+}
+
+
+answer.textContent=
+data.answer ||
+"Aucune réponse reçue.";
+
+status.textContent=
+"✅ Réponse reçue.";
+
+}
+
+catch(error){
+
+answer.textContent=
+"Le serveur IA n'est pas encore connecté.\n\n"+
+"Notre prochaine étape sera de configurer le serveur sécurisé.";
+
+status.textContent=
+"ℹ️ Interface prête.";
+
+}
+
+}
+
+
+function copyAnswer(){
+
+const text=
+document.getElementById("answer").textContent;
+
+navigator.clipboard.writeText(text);
+
+document.getElementById("status").textContent=
+"✅ Réponse copiée.";
+
+}
+
+
+function clearAnswer(){
+
+document.getElementById("answer").textContent="";
+
+document.getElementById("status").textContent="";
+
+}
+
+</script>
+
+</body>
+</html>
